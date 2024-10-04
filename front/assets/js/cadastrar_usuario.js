@@ -1,3 +1,5 @@
+import { config } from './config.js'; // Importa a configuração do arquivo config.js
+
 document.getElementById('cadastrarForm').addEventListener('submit', async function (e) {
     e.preventDefault(); // Impede o envio do formulário padrão
 
@@ -11,7 +13,7 @@ document.getElementById('cadastrarForm').addEventListener('submit', async functi
 
     try {
         // Envia a requisição para o endpoint de cadastrar usuário
-        const response = await fetch('http://localhost/SISTEMA_COPA/back/api/cadastrar_usuario.php', {
+        const response = await fetch(`${config.baseURL}cadastrar_usuario.php`, { // Usando a URL do arquivo de configuração
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

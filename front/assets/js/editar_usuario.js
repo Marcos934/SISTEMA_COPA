@@ -1,3 +1,5 @@
+import { config } from './config.js'; // Importa a configuração do arquivo config.js
+
 document.addEventListener('DOMContentLoaded', async function () {
     const admin_cpf = localStorage.getItem('cpfUsuario');
 
@@ -8,7 +10,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     }
 
     try {
-        const response = await fetch('http://localhost/SISTEMA_COPA/back/api/listar_usuarios.php', {
+        const response = await fetch(`${config.baseURL}listar_usuarios.php`, { // Usando a URL do arquivo de configuração
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -107,7 +109,7 @@ document.getElementById('salvarEdicoes').addEventListener('click', async functio
 
     try {
         // Envia a requisição para editar usuário
-        const response = await fetch('http://localhost/SISTEMA_COPA/back/api/editar_usuario.php', {
+        const response = await fetch(`${config.baseURL}editar_usuario.php`, { // Usando a URL do arquivo de configuração
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -148,7 +150,7 @@ document.getElementById('salvarEdicoes').addEventListener('click', async functio
 // Função para buscar usuários novamente (opcional, para atualizar a lista)
 async function fetchUsuarios() {
     const admin_cpf = localStorage.getItem('cpfUsuario');
-    const response = await fetch('http://localhost/SISTEMA_COPA/back/api/listar_usuarios.php', {
+    const response = await fetch(`${config.baseURL}listar_usuarios.php`, { // Usando a URL do arquivo de configuração
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'

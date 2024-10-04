@@ -10,29 +10,29 @@ session_start();
 // header('Access-Control-Allow-Methods: POST');
 
 // Verifica se o usuário está autenticado e se é administrador
-if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_tipo'] !== 'AD') {
-    http_response_code(403); // Proibido
-    echo json_encode(['success' => false, 'message' => 'Acesso negado. Apenas administradores podem cadastrar produtos.']);
-    exit();
-}
+// if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_tipo'] !== 'AD') {
+//     http_response_code(403); // Proibido
+//     echo json_encode(['success' => false, 'message' => 'Acesso negado. Apenas administradores podem cadastrar produtos.']);
+//     exit();
+// }
 
 require_once 'db.php';
 
 // Obtém os dados enviados
 $data = json_decode(file_get_contents('php://input'), true);
 
-if (!isset($data['nome']) || !isset($data['tipo']) || !isset($data['preco']) || !isset($data['qntd'])) {
+if (!isset($data['admin_cpf']) || !isset($data['nome']) || !isset($data['tipo']) || !isset($data['preco']) || !isset($data['qntd'])) {
     http_response_code(400); // Requisição inválida
-    echo json_encode(['success' => false, 'message' => 'Parâmetros inválidos.']);
+    echo json_encode(['success' => false, 'message' => 'Parâmetros inválidos. Todos os campos são obrigatórios.']);
     exit();
 }
 
-// Dados do novo produto
+$admin_cpf = $data['admin_cpf'];
 $nome = $data['nome'];
 $tipo = $data['tipo'];
 $preco = $data['preco'];
 $qntd = $data['qntd'];
-$informacao = isset($data['informacao']) ? $data['informacao'] : 'N/A';
+$informacao = isset($data['informacao']) ? $data['informacao'] : null;
 
 // Verifica se o tipo de produto é válido (COMIDA ou BEBIDA)
 if (!in_array($tipo, ['COMIDA', 'BEBIDA'])) {
@@ -42,11 +42,21 @@ if (!in_array($tipo, ['COMIDA', 'BEBIDA'])) {
 }
 
 try {
-    // Conecta ao banco de dados
     $db = new Database();
     $pdo = $db->getConnection();
 
-    // Insere o novo produto
+    // Verifica se o CPF do administrador é válido
+    $stmt = $pdo->prepare('SELECT * FROM usuario WHERE cpf = :cpf AND tipo = "AD"');
+    $stmt->execute(['cpf' => $admin_cpf]);
+    $admin = $stmt->fetch();
+
+    if (!$admin) {
+        http_response_code(403); // Proibido
+        echo json_encode(['success' => false, 'message' => 'Acesso negado. Apenas administradores podem cadastrar produtos.']);
+        exit();
+    }
+
+    // Insere o novo produto no banco de dados
     $stmt = $pdo->prepare('INSERT INTO produto (nome, tipo, preco, qntd, informacao) VALUES (:nome, :tipo, :preco, :qntd, :informacao)');
     $stmt->execute([
         'nome' => $nome,
