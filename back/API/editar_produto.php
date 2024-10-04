@@ -10,80 +10,91 @@ session_start();
 // header('Access-Control-Allow-Methods: POST');
 
 // Verifica se o usuário está autenticado e se é administrador
-if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_tipo'] !== 'AD') {
-    http_response_code(403); // Proibido
-    echo json_encode(['success' => false, 'message' => 'Acesso negado. Apenas administradores podem editar produtos.']);
-    exit();
-}
+// if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_tipo'] !== 'AD') {
+//     http_response_code(403); // Proibido
+//     echo json_encode(['success' => false, 'message' => 'Acesso negado. Apenas administradores podem editar produtos.']);
+//     exit();
+// }
 
 require_once 'db.php';
 
 // Obtém os dados enviados
 $data = json_decode(file_get_contents('php://input'), true);
 
-if (!isset($data['id_produto'])) {
+if (!isset($data['admin_cpf']) || !isset($data['id_produto']) || !isset($data['qntd'])) {
     http_response_code(400); // Requisição inválida
-    echo json_encode(['success' => false, 'message' => 'ID do produto é obrigatório.']);
+    echo json_encode(['success' => false, 'message' => 'CPF do administrador, ID do produto e quantidade são obrigatórios.']);
     exit();
 }
 
+$admin_cpf = $data['admin_cpf'];
 $id_produto = $data['id_produto'];
+$qntd = $data['qntd'];
 
-// Monta a query dinamicamente com base nos campos fornecidos
-$campos_para_atualizar = [];
-$parametros = ['id_produto' => $id_produto];
-
-if (isset($data['nome'])) {
-    $campos_para_atualizar[] = 'nome = :nome';
-    $parametros['nome'] = $data['nome'];
-}
-
-if (isset($data['tipo'])) {
-    // Verifica se o tipo de produto é válido (COMIDA ou BEBIDA)
-    if (!in_array($data['tipo'], ['COMIDA', 'BEBIDA'])) {
-        http_response_code(400); // Requisição inválida
-        echo json_encode(['success' => false, 'message' => 'Tipo de produto inválido.']);
-        exit();
-    }
-    $campos_para_atualizar[] = 'tipo = :tipo';
-    $parametros['tipo'] = $data['tipo'];
-}
-
-if (isset($data['preco'])) {
-    $campos_para_atualizar[] = 'preco = :preco';
-    $parametros['preco'] = $data['preco'];
-}
-
-if (isset($data['qntd'])) {
-    $campos_para_atualizar[] = 'qntd = :qntd';
-    $parametros['qntd'] = $data['qntd'];
-}
-
-if (isset($data['informacao'])) {
-    $campos_para_atualizar[] = 'informacao = :informacao';
-    $parametros['informacao'] = $data['informacao'];
-}
-
-// Se não houver campos para atualizar, retorna uma mensagem
-if (empty($campos_para_atualizar)) {
-    echo json_encode(['success' => false, 'message' => 'Nenhum campo para atualizar.']);
-    exit();
-}
+// Outros campos opcionais para atualização
+$nome = isset($data['nome']) ? $data['nome'] : null;
+$tipo = isset($data['tipo']) ? $data['tipo'] : null;
+$preco = isset($data['preco']) ? $data['preco'] : null;
+$informacao = isset($data['informacao']) ? $data['informacao'] : null;
 
 try {
-    // Conecta ao banco de dados
     $db = new Database();
     $pdo = $db->getConnection();
 
-    // Atualiza os dados do produto
-    $sql = 'UPDATE produto SET ' . implode(', ', $campos_para_atualizar) . ' WHERE id_produto = :id_produto';
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute($parametros);
+    // Verifica se o CPF fornecido pertence a um administrador (tipo AD)
+    $stmt = $pdo->prepare('SELECT * FROM usuario WHERE cpf = :cpf AND tipo = "AD"');
+    $stmt->execute(['cpf' => $admin_cpf]);
+    $admin = $stmt->fetch();
 
-    if ($stmt->rowCount()) {
+    if (!$admin) {
+        http_response_code(403); // Proibido
+        echo json_encode(['success' => false, 'message' => 'Acesso negado. Apenas administradores podem editar produtos.']);
+        exit();
+    }
+
+    // Verifica se o produto que será editado existe
+    $stmt = $pdo->prepare('SELECT * FROM produto WHERE id_produto = :id_produto');
+    $stmt->execute(['id_produto' => $id_produto]);
+    $produto = $stmt->fetch();
+
+    if (!$produto) {
+        http_response_code(404); // Não encontrado
+        echo json_encode(['success' => false, 'message' => 'Produto não encontrado.']);
+        exit();
+    }
+
+    // Constrói a query de atualização dinamicamente
+    $campos = [];
+    $valores = ['id_produto' => $id_produto, 'qntd' => $qntd];
+
+    if ($nome) {
+        $campos[] = 'nome = :nome';
+        $valores['nome'] = $nome;
+    }
+    if ($tipo && in_array($tipo, ['COMIDA', 'BEBIDA'])) {
+        $campos[] = 'tipo = :tipo';
+        $valores['tipo'] = $tipo;
+    }
+    if ($preco) {
+        $campos[] = 'preco = :preco';
+        $valores['preco'] = $preco;
+    }
+    if ($informacao) {
+        $campos[] = 'informacao = :informacao';
+        $valores['informacao'] = $informacao;
+    }
+    // A quantidade é obrigatória e será sempre atualizada
+    $campos[] = 'qntd = :qntd';
+
+    // Se houver campos para atualizar, executa a query
+    if (count($campos) > 0) {
+        $sql = 'UPDATE produto SET ' . implode(', ', $campos) . ' WHERE id_produto = :id_produto';
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($valores);
+
         echo json_encode(['success' => true, 'message' => 'Produto atualizado com sucesso.']);
     } else {
-        echo json_encode(['success' => false, 'message' => 'Nenhuma alteração feita ou produto não encontrado.']);
+        echo json_encode(['success' => false, 'message' => 'Nenhum campo para atualizar.']);
     }
 } catch (PDOException $e) {
     http_response_code(500); // Erro interno do servidor
