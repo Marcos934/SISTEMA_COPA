@@ -1,0 +1,58 @@
+-- Criando a tabela usuario
+CREATE TABLE usuario (
+    id_usuario INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    tipo ENUM('AD', 'CS') NOT NULL,
+    password VARCHAR(255) NOT NULL
+) CHARACTER SET utf8 COLLATE utf8_general_ci;
+
+-- Inserindo usuário inicial
+INSERT INTO usuario (nome, tipo, password) 
+VALUES ('mulinari', 'AD', '123');
+
+-- Criando a tabela produto
+CREATE TABLE produto (
+    id_produto INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    tipo ENUM('COMIDA', 'BEBIDA') NOT NULL,
+    preco DECIMAL(10, 2) NOT NULL,
+    qntd INT NOT NULL,
+    informacao TEXT
+) CHARACTER SET utf8 COLLATE utf8_general_ci;
+
+-- Inserindo produtos iniciais
+INSERT INTO produto (nome, tipo, preco, qntd, informacao) 
+VALUES 
+('Coca cola Sem açucar 600ml', 'BEBIDA', 5.00, 5, 'N/A'),
+('Energético Monster', 'BEBIDA', 15.00, 3, 'Sabor Coco'),
+('Água 350ml', 'BEBIDA', 2.00, 15, 'N/A'),
+('Diamante negro', 'COMIDA', 10.00, 10, 'N/A');
+
+-- Criando a tabela compra
+CREATE TABLE compra (
+    id_compra INT AUTO_INCREMENT PRIMARY KEY,
+    fk_id_usuario INT NOT NULL,
+    total DECIMAL(10, 2) NOT NULL,
+    data DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (fk_id_usuario) REFERENCES usuario(id_usuario)
+) CHARACTER SET utf8 COLLATE utf8_general_ci;
+
+-- Criando a tabela intermediária compra_produto
+CREATE TABLE compra_produto (
+    id_compra_produto INT AUTO_INCREMENT PRIMARY KEY,
+    fk_id_compra INT NOT NULL,
+    fk_id_produto INT NOT NULL,
+    quantidade INT NOT NULL,
+    FOREIGN KEY (fk_id_compra) REFERENCES compra(id_compra),
+    FOREIGN KEY (fk_id_produto) REFERENCES produto(id_produto)
+) CHARACTER SET utf8 COLLATE utf8_general_ci;
+
+-- Criando a tabela carteira
+CREATE TABLE carteira (
+    id_carteira INT AUTO_INCREMENT PRIMARY KEY,
+    fk_id_usuario INT NOT NULL,
+    saldo DECIMAL(10, 2) DEFAULT 0.00,
+    total_devedor DECIMAL(10, 2) DEFAULT 0.00,
+    data DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (fk_id_usuario) REFERENCES usuario(id_usuario)
+) CHARACTER SET utf8 COLLATE utf8_general_ci;
