@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GoldZone - Menu</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css"> <!-- Adiciona Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
 
-    <script type="module" src="../assets/js/menu.js"></script> <!-- Carrega o script de logout e saudação -->
-    <script type="module" src="../assets/js/menu_usuario.js"></script> <!-- Carrega o script de listagem de produtos -->
+    <script type="module" src="../assets/js/menu_usuario.js"></script>
+    <script type="module" src="../assets/js/menu.js"></script>
 </head>
 <body>
 
@@ -22,7 +22,7 @@
             <div class="collapse navbar-collapse">
                 <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
                     <li class="nav-item">
-                        <span class="navbar-text me-3" id="saudacao">Olá, Usuário</span> <!-- ID correto -->
+                        <span class="navbar-text" id="saudacao">Olá, Usuário</span>
                     </li>
                     <li class="nav-item">
                         <button class="btn btn-outline-danger" id="logoutBtn">Sair</button>
@@ -41,7 +41,7 @@
                 <div class="input-group">
                     <input type="text" id="searchInput" class="form-control" placeholder="Pesquisar produtos..." aria-label="Pesquisar produtos...">
                     <button class="btn btn-outline-secondary" type="button">
-                        <i class="bi bi-search"></i> <!-- Ícone da lupa -->
+                        <i class="bi bi-search"></i>
                     </button>
                 </div>
             </div>
@@ -54,7 +54,44 @@
             </div>
         </div>
 
-        <div id="produtosList" class="row row-cols-1 row-cols-md-5 g-2"></div> <!-- Lista de produtos -->
+        <div id="produtosList" class="row row-cols-1 row-cols-md-5 g-2"></div>
+
+        <!-- Modal para exibir detalhes do produto -->
+<div class="modal fade" id="produtoModal" tabindex="-1" aria-labelledby="produtoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalNome"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <img id="modalImagem" class="img-fluid" alt="Imagem do Produto" style="max-width: 450px;">
+                    </div>
+                    <div class="col-md-6">
+                        <p id="modalTipo" class="fw-bold"></p>
+                        <p id="modalPreco" class="fw-bold"></p>
+                        <p id="modalQuantidade" class="fw-bold"></p>
+                        <p id="modalInformacao"></p>
+                        <div class="input-group mb-3">
+                            <span class="input-group-text">Quantidade</span>
+                            <button class="btn btn-outline-secondary" id="btnDecrease">-</button>
+                            <input type="number" id="quantidadeInput" class="form-control" value="1" min="1" aria-label="Quantidade">
+                            <button class="btn btn-outline-secondary" id="btnIncrease">+</button>
+                        </div>
+                        <p id="totalValue" class="fw-bold">Total: R$ 0.00</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary">Confirmar</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
