@@ -38,11 +38,19 @@ $tipo = isset($data['tipo']) ? $data['tipo'] : null;
 $preco = isset($data['preco']) ? $data['preco'] : null;
 $informacao = isset($data['informacao']) ? $data['informacao'] : null;
 $url_img = isset($data['url_img']) ? $data['url_img'] : null; // URL opcional
+$status_produto = isset($data['status_produto']) ? $data['status_produto'] : null; // Status opcional
 
 // Valida a URL da imagem (se fornecida)
 if ($url_img && !preg_match('/^https?:\/\/.+$/', $url_img)) {
     http_response_code(400);
     echo json_encode(['success' => false, 'message' => 'URL da imagem inválida. Ela deve começar com http ou https.']);
+    exit();
+}
+
+// Valida o status do produto (se fornecido)
+if ($status_produto && !in_array($status_produto, ['ativo', 'inativo'])) {
+    http_response_code(400);
+    echo json_encode(['success' => false, 'message' => 'Status do produto inválido. Use "ativo" ou "inativo".']);
     exit();
 }
 
@@ -95,6 +103,10 @@ try {
     if ($url_img) {
         $campos[] = 'url_img = :url_img';
         $valores['url_img'] = $url_img;
+    }
+    if ($status_produto) {
+        $campos[] = 'status_produto = :status_produto';
+        $valores['status_produto'] = $status_produto;
     }
 
     // A quantidade é obrigatória e será sempre atualizada

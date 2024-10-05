@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     }
 
     try {
-        const response = await fetch(`${config.baseURL}listar_produtos.php`, { // Usando a URL do arquivo de configuração
+        const response = await fetch(`${config.baseURL}listar_produtos.php`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -49,6 +49,7 @@ function listarProdutos(produtos) {
                             <th>Preço</th>
                             <th>Quantidade</th>
                             <th>Informação</th>
+                            <th>Status</th>
                             <th>Ação</th>
                         </tr>
                     </thead>
@@ -56,6 +57,10 @@ function listarProdutos(produtos) {
     
     produtos.forEach(produto => {
         const imgUrl = produto.url_img ? produto.url_img : 'https://via.placeholder.com/100'; // Placeholder se a URL não estiver disponível
+        const statusButton = produto.status_produto === "ativo" 
+            ? `<button class="btn btn-danger btn-sm" onclick="alterarStatus('${produto.id_produto}', '${produto.qntd}', 'inativo')">Desativar</button>`
+            : `<button class="btn btn-success btn-sm" onclick="alterarStatus('${produto.id_produto}', '${produto.qntd}', 'ativo')">Ativar</button>`;
+        
         table += `<tr>
                       <td><img src="${imgUrl}" alt="Imagem do produto" style="width: 100px; height: 100px;"></td>
                       <td>${produto.nome}</td>
@@ -63,8 +68,10 @@ function listarProdutos(produtos) {
                       <td>${produto.preco}</td>
                       <td>${produto.qntd}</td>
                       <td>${produto.informacao || 'N/A'}</td>
+                      <td>${produto.status_produto}</td>
                       <td>
                           <button class="btn btn-warning btn-sm" data-id="${produto.id_produto}" data-nome="${produto.nome}" data-tipo="${produto.tipo}" data-preco="${produto.preco}" data-qntd="${produto.qntd}" data-informacao="${produto.informacao}" data-url="${produto.url_img}">Editar</button>
+                          ${statusButton} <!-- Botão de alterar status -->
                       </td>
                   </tr>`;
     });
@@ -105,20 +112,61 @@ function listarProdutos(produtos) {
     });
 }
 
-// Função para salvar as edições
+// Função para alterar o status do produto
+window.alterarStatus = async function(id_produto, qntd, novoStatus) { // Define a função como global
+    const confirmacao = confirm(`Você realmente deseja ${novoStatus === 'inativo' ? 'desativar' : 'ativar'} este produto?`);
+
+    if (confirmacao) {
+        const admin_cpf = localStorage.getItem('cpfUsuario');
+
+        try {
+            const response = await fetch(`${config.baseURL}editar_produto.php`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    admin_cpf: admin_cpf,
+                    id_produto: id_produto,
+                    qntd: qntd, // Inclui a quantidade atual
+                    status_produto: novoStatus // Envia o novo status
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`Erro HTTP: ${response.status}`);
+            }
+
+            const data = await response.json();
+            console.log('Resposta da API:', data); // Log para verificar a resposta
+
+            if (data.success) {
+                alert(data.message); // Exibe mensagem de sucesso
+                listarProdutos(await fetchProdutos()); // Atualiza a lista de produtos
+            } else {
+                alert('Erro ao alterar status: ' + data.message);
+            }
+
+        } catch (error) {
+            console.error('Erro durante a requisição:', error);
+            alert('Ocorreu um erro ao tentar alterar o status do produto.');
+        }
+    }
+}
+
+// Função para editar o produto
 document.getElementById('salvarEdicoes').addEventListener('click', async function () {
     const id_produto = document.getElementById('produtoId').value;
     const nome = document.getElementById('editarNome').value;
     const tipo = document.getElementById('editarTipo').value;
-    const preco = parseFloat(document.getElementById('editarPreco').value);
-    const qntd = parseInt(document.getElementById('editarQntd').value);
+    const preco = document.getElementById('editarPreco').value;
+    const qntd = document.getElementById('editarQntd').value;
     const informacao = document.getElementById('editarInformacao').value;
     const url_img = document.getElementById('url_img').value; // Captura a URL da imagem
     const admin_cpf = localStorage.getItem('cpfUsuario'); // Obtém o CPF do administrador do localStorage
 
     try {
-        // Envia a requisição para editar produto
-        const response = await fetch(`${config.baseURL}editar_produto.php`, { // Usando a URL do arquivo de configuração
+        const response = await fetch(`${config.baseURL}editar_produto.php`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -131,7 +179,7 @@ document.getElementById('salvarEdicoes').addEventListener('click', async functio
                 preco: preco,
                 qntd: qntd,
                 informacao: informacao,
-                url_img: url_img // Inclui a URL da imagem
+                url_img: url_img // Envia a nova URL da imagem
             })
         });
 
@@ -144,7 +192,6 @@ document.getElementById('salvarEdicoes').addEventListener('click', async functio
 
         if (data.success) {
             alert(data.message); // Exibe mensagem de sucesso
-            // Atualiza a lista de produtos ou fecha o modal
             const modal = bootstrap.Modal.getInstance(document.getElementById('editarProdutoModal'));
             modal.hide();
             listarProdutos(await fetchProdutos()); // Atualiza a lista de produtos
@@ -161,7 +208,7 @@ document.getElementById('salvarEdicoes').addEventListener('click', async functio
 // Função para buscar produtos novamente (opcional, para atualizar a lista)
 async function fetchProdutos() {
     const admin_cpf = localStorage.getItem('cpfUsuario');
-    const response = await fetch(`${config.baseURL}listar_produtos.php`, { // Usando a URL do arquivo de configuração
+    const response = await fetch(`${config.baseURL}listar_produtos.php`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -187,5 +234,11 @@ document.getElementById('url_img').addEventListener('input', function() {
         imgPreview.style.display = 'block'; // Exibe a nova imagem
     } else {
         imgPreview.style.display = 'none'; // Esconde a nova imagem se a URL estiver vazia
+    }
+
+    // Oculta a pré-visualização da nova imagem se a URL for igual à antiga
+    const imgAntiga = document.getElementById('imgAntiga').src;
+    if (urlNova === imgAntiga) {
+        imgPreview.style.display = 'none'; // Esconde se for a mesma
     }
 });
