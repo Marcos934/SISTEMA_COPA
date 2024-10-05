@@ -83,6 +83,7 @@ function exibirProdutos(produtos) {
 window.abrirModal = function (nome, imagem, tipo, preco, qntd, informacao, idProduto) {
     document.getElementById('modalNome').textContent = nome;
     document.getElementById('modalImagem').src = imagem;
+    document.getElementById('modalImagem').setAttribute('data-id', idProduto); // Armazena o ID do produto na imagem
     document.getElementById('modalTipo').textContent = `Tipo: ${tipo}`;
     document.getElementById('modalPreco').textContent = `Preço: R$ ${preco.toFixed(2)}`;
     document.getElementById('modalQuantidade').textContent = `Disponível: ${qntd}`;
@@ -96,14 +97,6 @@ window.abrirModal = function (nome, imagem, tipo, preco, qntd, informacao, idPro
 
     const modal = new bootstrap.Modal(document.getElementById('produtoModal'));
     modal.show();
-
-    // Atualizar o evento de confirmação do botão
-    const btnConfirmar = document.querySelector('.modal-footer .btn-primary');
-    btnConfirmar.onclick = function () {
-        const quantidadeSelecionada = parseInt(quantidadeInput.value);
-        const total = preco * quantidadeSelecionada; // Calcule o total
-        realizarCompra(quantidadeSelecionada, total, idProduto); // Chama a função de compra
-    };
 }
 
 // Função para atualizar o total
