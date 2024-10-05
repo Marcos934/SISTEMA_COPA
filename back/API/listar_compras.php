@@ -10,11 +10,11 @@ session_start();
 // header('Access-Control-Allow-Methods: GET');
 
 // Verifica se o usuário está autenticado e se é administrador
-if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_tipo'] !== 'AD') {
-    http_response_code(403); // Proibido
-    echo json_encode(['success' => false, 'message' => 'Acesso negado. Apenas administradores podem visualizar as compras.']);
-    exit();
-}
+// if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_tipo'] !== 'AD') {
+//     http_response_code(403); // Proibido
+//     echo json_encode(['success' => false, 'message' => 'Acesso negado. Apenas administradores podem visualizar as compras.']);
+//     exit();
+// }
 
 require_once 'db.php';
 
