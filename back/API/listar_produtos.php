@@ -21,35 +21,57 @@ require_once 'db.php';
 // Obtém os dados enviados
 $data = json_decode(file_get_contents('php://input'), true);
 
-if (!isset($data['admin_cpf'])) {
+if (!isset($data['cpf'])) {
     http_response_code(400); // Requisição inválida
-    echo json_encode(['success' => false, 'message' => 'CPF do administrador é obrigatório.']);
+    echo json_encode(['success' => false, 'message' => 'CPF é obrigatório.']);
     exit();
 }
 
-$admin_cpf = $data['admin_cpf'];
+$cpf = $data['cpf'];
 
 try {
     $db = new Database();
     $pdo = $db->getConnection();
 
-    // Verifica se o CPF fornecido pertence a um administrador (tipo AD)
-    $stmt = $pdo->prepare('SELECT * FROM usuario WHERE cpf = :cpf AND tipo = "AD"');
-    $stmt->execute(['cpf' => $admin_cpf]);
-    $admin = $stmt->fetch();
+    // Verifica se o CPF fornecido pertence a um usuário ativo e qual o tipo (AD ou CS)
+    $stmt = $pdo->prepare('SELECT tipo, status FROM usuario WHERE cpf = :cpf');
+    $stmt->execute(['cpf' => $cpf]);
+    $usuario = $stmt->fetch();
 
-    if (!$admin) {
-        http_response_code(403); // Proibido
-        echo json_encode(['success' => false, 'message' => 'Acesso negado. Apenas administradores podem visualizar os produtos.']);
+    if (!$usuario) {
+        http_response_code(404); // Não encontrado
+        echo json_encode(['success' => false, 'message' => 'Usuário não encontrado.']);
         exit();
     }
 
-    // Lista todos os produtos com todos os campos
-    $stmt = $pdo->prepare('SELECT * FROM produto');
-    $stmt->execute();
-    $produtos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    // Verifica se o usuário está ativo
+    if ($usuario['status'] !== 'ativo') {
+        http_response_code(403); // Proibido
+        echo json_encode(['success' => false, 'message' => 'Usuário não está ativo.']);
+        exit();
+    }
 
-    echo json_encode(['success' => true, 'produtos' => $produtos]);
+    // Permite o acesso completo para administradores
+    if ($usuario['tipo'] === 'AD') {
+        // Lista todos os produtos para administradores
+        $stmt = $pdo->prepare('SELECT * FROM produto');
+        $stmt->execute();
+        $produtos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        echo json_encode(['success' => true, 'produtos' => $produtos]);
+
+    // Aplica a regra de negócio para usuários CS
+    } elseif ($usuario['tipo'] === 'CS') {
+        // Lista apenas os produtos com quantidade > 0 e status_produto = 'ativo'
+        $stmt = $pdo->prepare('SELECT * FROM produto WHERE qntd > 0 AND status_produto = "ativo"');
+        $stmt->execute();
+        $produtos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        echo json_encode(['success' => true, 'produtos' => $produtos]);
+    } else {
+        http_response_code(403); // Proibido
+        echo json_encode(['success' => false, 'message' => 'Acesso negado.']);
+    }
 } catch (PDOException $e) {
     http_response_code(500); // Erro interno do servidor
     echo json_encode(['success' => false, 'message' => 'Erro no servidor: ' . $e->getMessage()]);
