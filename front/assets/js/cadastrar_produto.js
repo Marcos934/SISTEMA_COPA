@@ -9,6 +9,7 @@ document.getElementById('cadastrarForm').addEventListener('submit', async functi
     const preco = parseFloat(document.getElementById('preco').value.trim());
     const qntd = parseInt(document.getElementById('qntd').value.trim());
     const informacao = document.getElementById('informacao').value.trim();
+    const url_img = document.getElementById('url_img').value.trim();
     const admin_cpf = localStorage.getItem('cpfUsuario'); // Obtém o CPF do administrador do localStorage
 
     try {
@@ -24,7 +25,8 @@ document.getElementById('cadastrarForm').addEventListener('submit', async functi
                 preco: preco,
                 qntd: qntd,
                 informacao: informacao,
-                admin_cpf: admin_cpf // Inclui o CPF do administrador
+                admin_cpf: admin_cpf, // Inclui o CPF do administrador
+                url_img: url_img // Inclui a URL da imagem
             })
         });
 
@@ -47,5 +49,18 @@ document.getElementById('cadastrarForm').addEventListener('submit', async functi
     } catch (error) {
         console.error('Erro durante a requisição:', error);
         alert('Ocorreu um erro ao tentar cadastrar o produto.');
+    }
+});
+
+// Função para visualizar a imagem
+document.getElementById('url_img').addEventListener('input', function() {
+    const imgPreview = document.getElementById('imgPreview');
+    const url = this.value;
+
+    if (url) {
+        imgPreview.src = url;
+        imgPreview.style.display = 'block'; // Exibe a imagem
+    } else {
+        imgPreview.style.display = 'none'; // Esconde a imagem se a URL estiver vazia
     }
 });

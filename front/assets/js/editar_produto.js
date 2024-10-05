@@ -43,7 +43,7 @@ function listarProdutos(produtos) {
     let table = `<table class="table">
                     <thead>
                         <tr>
-                            <th>ID</th>
+                            <th>Imagem</th>
                             <th>Nome</th>
                             <th>Tipo</th>
                             <th>Preço</th>
@@ -55,15 +55,16 @@ function listarProdutos(produtos) {
                     <tbody>`;
     
     produtos.forEach(produto => {
+        const imgUrl = produto.url_img ? produto.url_img : 'https://via.placeholder.com/100'; // Placeholder se a URL não estiver disponível
         table += `<tr>
-                      <td>${produto.id_produto}</td>
+                      <td><img src="${imgUrl}" alt="Imagem do produto" style="width: 100px; height: 100px;"></td>
                       <td>${produto.nome}</td>
                       <td>${produto.tipo}</td>
                       <td>${produto.preco}</td>
                       <td>${produto.qntd}</td>
                       <td>${produto.informacao || 'N/A'}</td>
                       <td>
-                          <button class="btn btn-warning btn-sm" data-id="${produto.id_produto}" data-nome="${produto.nome}" data-tipo="${produto.tipo}" data-preco="${produto.preco}" data-qntd="${produto.qntd}" data-informacao="${produto.informacao}">Editar</button>
+                          <button class="btn btn-warning btn-sm" data-id="${produto.id_produto}" data-nome="${produto.nome}" data-tipo="${produto.tipo}" data-preco="${produto.preco}" data-qntd="${produto.qntd}" data-informacao="${produto.informacao}" data-url="${produto.url_img}">Editar</button>
                       </td>
                   </tr>`;
     });
@@ -80,6 +81,7 @@ function listarProdutos(produtos) {
             const preco = this.getAttribute('data-preco');
             const qntd = this.getAttribute('data-qntd');
             const informacao = this.getAttribute('data-informacao');
+            const url_img = this.getAttribute('data-url'); // Captura a URL da imagem
 
             // Preenche os campos do modal
             document.getElementById('editarNome').value = nome;
@@ -87,6 +89,12 @@ function listarProdutos(produtos) {
             document.getElementById('editarPreco').value = preco;
             document.getElementById('editarQntd').value = qntd;
             document.getElementById('editarInformacao').value = informacao;
+            document.getElementById('url_img').value = url_img; // Preenche a URL da imagem
+
+            // Exibe a imagem antiga
+            const imgAntiga = document.getElementById('imgAntiga');
+            imgAntiga.src = url_img;
+            imgAntiga.style.display = 'block';
 
             document.getElementById('produtoId').value = id_produto;
 
@@ -105,6 +113,7 @@ document.getElementById('salvarEdicoes').addEventListener('click', async functio
     const preco = parseFloat(document.getElementById('editarPreco').value);
     const qntd = parseInt(document.getElementById('editarQntd').value);
     const informacao = document.getElementById('editarInformacao').value;
+    const url_img = document.getElementById('url_img').value; // Captura a URL da imagem
     const admin_cpf = localStorage.getItem('cpfUsuario'); // Obtém o CPF do administrador do localStorage
 
     try {
@@ -121,7 +130,8 @@ document.getElementById('salvarEdicoes').addEventListener('click', async functio
                 tipo: tipo,
                 preco: preco,
                 qntd: qntd,
-                informacao: informacao
+                informacao: informacao,
+                url_img: url_img // Inclui a URL da imagem
             })
         });
 
@@ -166,3 +176,16 @@ async function fetchProdutos() {
     const data = await response.json();
     return data.produtos; // Retorna a lista de produtos
 }
+
+// Adiciona o evento para visualizar a nova imagem
+document.getElementById('url_img').addEventListener('input', function() {
+    const imgPreview = document.getElementById('imgPreview');
+    const urlNova = this.value;
+
+    if (urlNova) {
+        imgPreview.src = urlNova; // Atualiza a nova imagem
+        imgPreview.style.display = 'block'; // Exibe a nova imagem
+    } else {
+        imgPreview.style.display = 'none'; // Esconde a nova imagem se a URL estiver vazia
+    }
+});

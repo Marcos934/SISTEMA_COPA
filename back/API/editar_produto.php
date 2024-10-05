@@ -16,6 +16,7 @@ session_start();
 //     exit();
 // }
 
+
 require_once 'db.php';
 
 // Obtém os dados enviados
@@ -36,6 +37,14 @@ $nome = isset($data['nome']) ? $data['nome'] : null;
 $tipo = isset($data['tipo']) ? $data['tipo'] : null;
 $preco = isset($data['preco']) ? $data['preco'] : null;
 $informacao = isset($data['informacao']) ? $data['informacao'] : null;
+$url_img = isset($data['url_img']) ? $data['url_img'] : null; // URL opcional
+
+// Valida a URL da imagem (se fornecida)
+if ($url_img && !preg_match('/^https?:\/\/.+$/', $url_img)) {
+    http_response_code(400);
+    echo json_encode(['success' => false, 'message' => 'URL da imagem inválida. Ela deve começar com http ou https.']);
+    exit();
+}
 
 try {
     $db = new Database();
@@ -83,6 +92,11 @@ try {
         $campos[] = 'informacao = :informacao';
         $valores['informacao'] = $informacao;
     }
+    if ($url_img) {
+        $campos[] = 'url_img = :url_img';
+        $valores['url_img'] = $url_img;
+    }
+
     // A quantidade é obrigatória e será sempre atualizada
     $campos[] = 'qntd = :qntd';
 

@@ -18,12 +18,14 @@ session_start();
 
 require_once 'db.php';
 
+require_once 'db.php';
+
 // Obtém os dados enviados
 $data = json_decode(file_get_contents('php://input'), true);
 
 if (!isset($data['admin_cpf']) || !isset($data['nome']) || !isset($data['tipo']) || !isset($data['preco']) || !isset($data['qntd'])) {
     http_response_code(400); // Requisição inválida
-    echo json_encode(['success' => false, 'message' => 'Parâmetros inválidos. Todos os campos são obrigatórios.']);
+    echo json_encode(['success' => false, 'message' => 'Parâmetros inválidos. Todos os campos obrigatórios devem ser preenchidos.']);
     exit();
 }
 
@@ -33,6 +35,14 @@ $tipo = $data['tipo'];
 $preco = $data['preco'];
 $qntd = $data['qntd'];
 $informacao = isset($data['informacao']) ? $data['informacao'] : null;
+$url_img = isset($data['url_img']) ? $data['url_img'] : null; // URL opcional
+
+// Valida a URL da imagem (se fornecida)
+if ($url_img && !preg_match('/^https?:\/\/.+$/', $url_img)) {
+    http_response_code(400);
+    echo json_encode(['success' => false, 'message' => 'URL da imagem inválida. Ela deve começar com http ou https.']);
+    exit();
+}
 
 // Verifica se o tipo de produto é válido (COMIDA ou BEBIDA)
 if (!in_array($tipo, ['COMIDA', 'BEBIDA'])) {
@@ -57,13 +67,14 @@ try {
     }
 
     // Insere o novo produto no banco de dados
-    $stmt = $pdo->prepare('INSERT INTO produto (nome, tipo, preco, qntd, informacao) VALUES (:nome, :tipo, :preco, :qntd, :informacao)');
+    $stmt = $pdo->prepare('INSERT INTO produto (nome, tipo, preco, qntd, informacao, url_img) VALUES (:nome, :tipo, :preco, :qntd, :informacao, :url_img)');
     $stmt->execute([
         'nome' => $nome,
         'tipo' => $tipo,
         'preco' => $preco,
         'qntd' => $qntd,
-        'informacao' => $informacao
+        'informacao' => $informacao,
+        'url_img' => $url_img // URL da imagem (pode ser nula)
     ]);
 
     echo json_encode(['success' => true, 'message' => 'Produto cadastrado com sucesso.']);

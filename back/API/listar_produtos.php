@@ -16,7 +16,6 @@ session_start();
 //     exit();
 // }
 
-
 require_once 'db.php';
 
 // Obtém os dados enviados
@@ -45,8 +44,8 @@ try {
         exit();
     }
 
-    // Lista todos os produtos
-    $stmt = $pdo->prepare('SELECT id_produto, nome, tipo, preco, qntd, informacao FROM produto');
+    // Lista todos os produtos com todos os campos
+    $stmt = $pdo->prepare('SELECT * FROM produto');
     $stmt->execute();
     $produtos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
