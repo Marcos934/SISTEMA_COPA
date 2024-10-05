@@ -1,4 +1,5 @@
 import { config } from './config.js'; // Importa a configuração do arquivo config.js
+import './comprar.js'; // Importa o novo arquivo
 
 document.addEventListener('DOMContentLoaded', async function () {
     const cpf = localStorage.getItem('cpfUsuario');
@@ -64,7 +65,7 @@ function exibirProdutos(produtos) {
                         <p class="card-text" style="margin-bottom: 0;">Preço: R$ ${produto.preco}</p>
                         <p class="card-text" style="margin-bottom: 0;">Disponível: ${produto.qntd}</p>
                         <p class="card-text" style="margin-bottom: 0;">Informação: ${produto.informacao || 'N/A'}</p>
-                        <button class="btn btn-warning w-100"  onmouseover="this.querySelector('#iconCanecaVazia').style.display='none'; this.querySelector('#iconCanecaCheia').style.display='inline';" onmouseout="this.querySelector('#iconCanecaVazia').style.display='inline'; this.querySelector('#iconCanecaCheia').style.display='none';"  onclick="abrirModal('${produto.nome}', '${imgUrl}', '${produto.tipo}', ${produto.preco}, ${produto.qntd}, '${produto.informacao}')">
+                        <button class="btn btn-warning w-100" onmouseover="this.querySelector('#iconCanecaVazia').style.display='none'; this.querySelector('#iconCanecaCheia').style.display='inline';" onmouseout="this.querySelector('#iconCanecaVazia').style.display='inline'; this.querySelector('#iconCanecaCheia').style.display='none';" onclick="abrirModal('${produto.nome}', '${imgUrl}', '${produto.tipo}', ${produto.preco}, ${produto.qntd}, '${produto.informacao}', ${produto.id_produto})">
                             <i class="bi bi-cup" id="iconCanecaVazia"></i>
                             <i class="bi bi-cup-fill" id="iconCanecaCheia" style="display: none;"></i>
                             Consumir
@@ -79,7 +80,7 @@ function exibirProdutos(produtos) {
 }
 
 // Função para abrir o modal e preencher os dados
-window.abrirModal = function (nome, imagem, tipo, preco, qntd, informacao) {
+window.abrirModal = function (nome, imagem, tipo, preco, qntd, informacao, idProduto) {
     document.getElementById('modalNome').textContent = nome;
     document.getElementById('modalImagem').src = imagem;
     document.getElementById('modalTipo').textContent = `Tipo: ${tipo}`;
@@ -95,6 +96,14 @@ window.abrirModal = function (nome, imagem, tipo, preco, qntd, informacao) {
 
     const modal = new bootstrap.Modal(document.getElementById('produtoModal'));
     modal.show();
+
+    // Atualizar o evento de confirmação do botão
+    const btnConfirmar = document.querySelector('.modal-footer .btn-primary');
+    btnConfirmar.onclick = function () {
+        const quantidadeSelecionada = parseInt(quantidadeInput.value);
+        const total = preco * quantidadeSelecionada; // Calcule o total
+        realizarCompra(quantidadeSelecionada, total, idProduto); // Chama a função de compra
+    };
 }
 
 // Função para atualizar o total

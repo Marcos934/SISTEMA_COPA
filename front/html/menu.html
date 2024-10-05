@@ -9,6 +9,7 @@
 
     <script type="module" src="../assets/js/menu_usuario.js"></script>
     <script type="module" src="../assets/js/menu.js"></script>
+    <script type="module" src="../assets/js/comprar.js"></script> <!-- Nova referência -->
 </head>
 <body>
 
@@ -57,40 +58,40 @@
         <div id="produtosList" class="row row-cols-1 row-cols-md-5 g-2"></div>
 
         <!-- Modal para exibir detalhes do produto -->
-<div class="modal fade" id="produtoModal" tabindex="-1" aria-labelledby="produtoModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="modalNome"></h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div class="row">
-                    <div class="col-md-6">
-                        <img id="modalImagem" class="img-fluid" alt="Imagem do Produto" style="max-width: 450px;">
+        <div class="modal fade" id="produtoModal" tabindex="-1" aria-labelledby="produtoModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modalNome"></h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-                    <div class="col-md-6">
-                        <p id="modalTipo" class="fw-bold"></p>
-                        <p id="modalPreco" class="fw-bold"></p>
-                        <p id="modalQuantidade" class="fw-bold"></p>
-                        <p id="modalInformacao"></p>
-                        <div class="input-group mb-3">
-                            <span class="input-group-text">Quantidade</span>
-                            <button class="btn btn-outline-secondary" id="btnDecrease">-</button>
-                            <input type="number" id="quantidadeInput" class="form-control" value="1" min="1" aria-label="Quantidade">
-                            <button class="btn btn-outline-secondary" id="btnIncrease">+</button>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <img id="modalImagem" class="img-fluid" alt="Imagem do Produto" style="max-width: 450px;">
+                            </div>
+                            <div class="col-md-6">
+                                <p id="modalTipo" class="fw-bold"></p>
+                                <p id="modalPreco" class="fw-bold"></p>
+                                <p id="modalQuantidade" class="fw-bold"></p>
+                                <p id="modalInformacao"></p>
+                                <div class="input-group mb-3">
+                                    <span class="input-group-text">Quantidade</span>
+                                    <button class="btn btn-outline-secondary" id="btnDecrease">-</button>
+                                    <input type="number" id="quantidadeInput" class="form-control" value="1" min="1" aria-label="Quantidade">
+                                    <button class="btn btn-outline-secondary" id="btnIncrease">+</button>
+                                </div>
+                                <p id="totalValue" class="fw-bold">Total: R$ 0.00</p>
+                            </div>
                         </div>
-                        <p id="totalValue" class="fw-bold">Total: R$ 0.00</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary">Confirmar</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
                     </div>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-primary">Confirmar</button>
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
-            </div>
         </div>
-    </div>
-</div>
 
     </div>
 

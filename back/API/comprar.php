@@ -10,89 +10,82 @@ session_start();
 // header('Access-Control-Allow-Methods: POST');
 
 // Verifica se o usuário está autenticado
-if (!isset($_SESSION['usuario_id'])) {
-    http_response_code(401); // Não autorizado
-    echo json_encode(['success' => false, 'message' => 'Usuário não autenticado.']);
-    exit();
-}
+// if (!isset($_SESSION['usuario_id'])) {
+//     http_response_code(401); // Não autorizado
+//     echo json_encode(['success' => false, 'message' => 'Usuário não autenticado.']);
+//     exit();
+// }
 
 require_once 'db.php';
 
 // Obtém os dados enviados
 $data = json_decode(file_get_contents('php://input'), true);
 
-if (!isset($data['produtos']) || !is_array($data['produtos'])) {
+if (!isset($data['cpf']) || !isset($data['produtos']) || !isset($data['total'])) {
     http_response_code(400); // Requisição inválida
-    echo json_encode(['success' => false, 'message' => 'Dados inválidos. Produtos devem ser um array.']);
+    echo json_encode(['success' => false, 'message' => 'CPF, produtos e total são obrigatórios.']);
     exit();
 }
 
-$usuario_id = $_SESSION['usuario_id'];
-$produtos = $data['produtos']; // Array de objetos com 'id_produto' e 'quantidade'
+$cpf = $data['cpf'];
+$produtos = $data['produtos'];
+$total = $data['total'];
 
 try {
     $db = new Database();
     $pdo = $db->getConnection();
 
-    // Inicia uma transação para garantir a consistência dos dados
-    $pdo->beginTransaction();
+    // Verifica se o CPF fornecido pertence a um usuário ativo
+    $stmt = $pdo->prepare('SELECT id_usuario, status FROM usuario WHERE cpf = :cpf');
+    $stmt->execute(['cpf' => $cpf]);
+    $usuario = $stmt->fetch();
 
-    $total = 0;
-
-    foreach ($produtos as $item) {
-        // Verifica se os dados estão corretos
-        if (!isset($item['id_produto']) || !isset($item['quantidade'])) {
-            throw new Exception('Dados de produto inválidos');
-        }
-
-        // Verifica se o produto existe e se há estoque suficiente
-        $stmt = $pdo->prepare('SELECT preco, qntd FROM produto WHERE id_produto = :id_produto');
-        $stmt->execute(['id_produto' => $item['id_produto']]);
-        $produto = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        if (!$produto || $produto['qntd'] < $item['quantidade']) {
-            throw new Exception('Produto indisponível ou quantidade insuficiente.');
-        }
-
-        // Calcula o subtotal do produto
-        $subtotal = $produto['preco'] * $item['quantidade'];
-        $total += $subtotal;
-
-        // Atualiza a quantidade em estoque
-        $stmt = $pdo->prepare('UPDATE produto SET qntd = qntd - :quantidade WHERE id_produto = :id_produto');
-        $stmt->execute([
-            'quantidade' => $item['quantidade'],
-            'id_produto' => $item['id_produto']
-        ]);
+    if (!$usuario) {
+        http_response_code(404); // Usuário não encontrado
+        echo json_encode(['success' => false, 'message' => 'Usuário não encontrado.']);
+        exit();
     }
 
-    // Registra a compra com o status de pagamento como 'pendente'
-    $stmt = $pdo->prepare('INSERT INTO compra (fk_id_usuario, total, pgto) VALUES (:fk_id_usuario, :total, :pgto)');
-    $stmt->execute([
-        'fk_id_usuario' => $usuario_id,
-        'total' => $total,
-        'pgto' => 'pendente' // O status de pagamento é 'pendente' por padrão
-    ]);
+    // Verifica se o usuário está ativo
+    if ($usuario['status'] !== 'ativo') {
+        http_response_code(403); // Proibido
+        echo json_encode(['success' => false, 'message' => 'Usuário inativo.']);
+        exit();
+    }
+
+    $usuario_id = $usuario['id_usuario'];
+
+    // Insere uma nova compra na tabela "compra"
+    $stmt = $pdo->prepare('INSERT INTO compra (fk_id_usuario, total, pgto) VALUES (:fk_id_usuario, :total, "pendente")');
+    $stmt->execute(['fk_id_usuario' => $usuario_id, 'total' => $total]);
+
+    // Obtém o ID da compra recém-criada
     $id_compra = $pdo->lastInsertId();
 
-    // Registra os produtos da compra
-    foreach ($produtos as $item) {
+    // Insere os produtos comprados na tabela "compra_produto" e atualiza o estoque
+    foreach ($produtos as $produto) {
+        $id_produto = $produto['id_produto'];
+        $quantidade = $produto['quantidade'];
+
+        // Insere o produto na tabela compra_produto
         $stmt = $pdo->prepare('INSERT INTO compra_produto (fk_id_compra, fk_id_produto, quantidade) VALUES (:fk_id_compra, :fk_id_produto, :quantidade)');
         $stmt->execute([
             'fk_id_compra' => $id_compra,
-            'fk_id_produto' => $item['id_produto'],
-            'quantidade' => $item['quantidade']
+            'fk_id_produto' => $id_produto,
+            'quantidade' => $quantidade
+        ]);
+
+        // Atualiza o estoque do produto na tabela "produto"
+        $stmt = $pdo->prepare('UPDATE produto SET qntd = qntd - :quantidade WHERE id_produto = :id_produto');
+        $stmt->execute([
+            'quantidade' => $quantidade,
+            'id_produto' => $id_produto
         ]);
     }
 
-    // Finaliza a transação
-    $pdo->commit();
-
-    echo json_encode(['success' => true, 'message' => 'Compra realizada com sucesso.']);
-} catch (Exception $e) {
-    // Em caso de erro, faz rollback da transação
-    $pdo->rollBack();
-    http_response_code(400); // Requisição inválida
-    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    echo json_encode(['success' => true, 'message' => 'Compra registrada com sucesso.']);
+} catch (PDOException $e) {
+    http_response_code(500); // Erro no servidor
+    echo json_encode(['success' => false, 'message' => 'Erro no servidor: ' . $e->getMessage()]);
 }
 ?>
