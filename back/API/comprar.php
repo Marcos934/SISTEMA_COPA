@@ -35,6 +35,9 @@ try {
     $db = new Database();
     $pdo = $db->getConnection();
 
+    // Inicia a transação
+    $pdo->beginTransaction();
+
     // Verifica se o CPF fornecido pertence a um usuário ativo
     $stmt = $pdo->prepare('SELECT id_usuario, status FROM usuario WHERE cpf = :cpf');
     $stmt->execute(['cpf' => $cpf]);
@@ -54,6 +57,24 @@ try {
     }
 
     $usuario_id = $usuario['id_usuario'];
+
+    // Verifica se há estoque suficiente para cada produto
+    foreach ($produtos as $produto) {
+        $id_produto = $produto['id_produto'];
+        $quantidade = $produto['quantidade'];
+
+        // Verifica a quantidade em estoque do produto
+        $stmt = $pdo->prepare('SELECT qntd FROM produto WHERE id_produto = :id_produto FOR UPDATE');
+        $stmt->execute(['id_produto' => $id_produto]);
+        $produto_db = $stmt->fetch();
+
+        if ($produto_db['qntd'] < $quantidade) {
+            // Se o estoque for insuficiente, desfaz a transação
+            $pdo->rollBack();
+            echo json_encode(['success' => false, 'message' => 'Estoque insuficiente para o produto ID ']);
+            exit();
+        }
+    }
 
     // Insere uma nova compra na tabela "compra"
     $stmt = $pdo->prepare('INSERT INTO compra (fk_id_usuario, total, pgto) VALUES (:fk_id_usuario, :total, "pendente")');
@@ -83,8 +104,13 @@ try {
         ]);
     }
 
+    // Confirma a transação
+    $pdo->commit();
+
     echo json_encode(['success' => true, 'message' => 'Compra registrada com sucesso.']);
 } catch (PDOException $e) {
+    // Desfaz a transação em caso de erro
+    $pdo->rollBack();
     http_response_code(500); // Erro no servidor
     echo json_encode(['success' => false, 'message' => 'Erro no servidor: ' . $e->getMessage()]);
 }

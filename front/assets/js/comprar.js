@@ -34,6 +34,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (!response.ok) {
                 throw new Error(`Erro HTTP: ${response.status}`);
+                location.reload(); // Recarrega a página
             }
 
             const data = await response.json();
