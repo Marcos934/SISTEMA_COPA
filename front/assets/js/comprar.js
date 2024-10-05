@@ -7,7 +7,8 @@ document.addEventListener('DOMContentLoaded', function () {
     
     confirmarCompraBtn.addEventListener('click', async function () {
         // Desabilita o botão para evitar múltiplos cliques
-        confirmarCompraBtn.disabled = true;
+        confirmarCompraBtn.innerHTML = '<i class="bi bi-arrow-repeat spinner-border" role="status"></i>';
+        confirmarCompraBtn.setAttribute('disabled', 'true');
 
         const cpf = localStorage.getItem('cpfUsuario');
         const quantidade = parseInt(document.getElementById('quantidadeInput').value);
@@ -34,7 +35,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (!response.ok) {
                 throw new Error(`Erro HTTP: ${response.status}`);
-                location.reload(); // Recarrega a página
             }
 
             const data = await response.json();
