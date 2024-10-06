@@ -30,6 +30,7 @@ if (!isset($data['cpf'])) {
 $cpf = $data['cpf'];
 $data_inicial = isset($data['data_inicial']) ? $data['data_inicial'] : null;
 $data_final = isset($data['data_final']) ? $data['data_final'] : null;
+$pgto = isset($data['pgto']) ? $data['pgto'] : null;
 
 try {
     $db = new Database();
@@ -55,7 +56,7 @@ try {
 
     $usuario_id = $usuario['id_usuario'];
 
-    // Consulta o histórico de compras do usuário com ou sem filtro de data
+    // Consulta o histórico de compras do usuário com ou sem filtro de data e pgto
     $sql = '
         SELECT c.id_compra, p.nome AS nome_produto, cp.quantidade, c.total, c.data, c.pgto
         FROM compra c
@@ -68,20 +69,27 @@ try {
         $sql .= ' AND DATE(c.data) BETWEEN :data_inicial AND :data_final';
     }
 
+    // Adiciona o filtro de pgto se enviado
+    if ($pgto) {
+        $sql .= ' AND c.pgto = :pgto';
+    }
+
     $sql .= ' ORDER BY c.data DESC';
     $stmt = $pdo->prepare($sql);
 
-    // Vincula os parâmetros de data se enviados
+    // Vincula os parâmetros de data e pgto se enviados
+    $params = ['usuario_id' => $usuario_id];
+    
     if ($data_inicial && $data_final) {
-        $stmt->execute([
-            'usuario_id' => $usuario_id,
-            'data_inicial' => $data_inicial,
-            'data_final' => $data_final
-        ]);
-    } else {
-        $stmt->execute(['usuario_id' => $usuario_id]);
+        $params['data_inicial'] = $data_inicial;
+        $params['data_final'] = $data_final;
+    }
+    
+    if ($pgto) {
+        $params['pgto'] = $pgto;
     }
 
+    $stmt->execute($params);
     $compras = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     echo json_encode(['success' => true, 'compras' => $compras]);
