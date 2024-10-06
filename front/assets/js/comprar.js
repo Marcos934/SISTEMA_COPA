@@ -39,10 +39,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const data = await response.json();
             console.log('Resposta da compra:', data);
+      
+           if (!data.success){
+                // Recarrega a página ao final da barra de progresso
+                location.reload();
+           }
+
 
             if (data.success) {
                 const mensagemConfirmacao = document.getElementById('mensagemConfirmacao');
-                mensagemConfirmacao.textContent = 'A compra foi realizada com sucesso!'; // Mensagem de sucesso
+                mensagemConfirmacao.textContent = ''; // Mensagem de sucesso
                 
                 // Inicializa a barra de progresso
                 let progressBar = document.getElementById('progressBar');

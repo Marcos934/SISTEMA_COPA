@@ -71,7 +71,7 @@ try {
         if ($produto_db['qntd'] < $quantidade) {
             // Se o estoque for insuficiente, desfaz a transação
             $pdo->rollBack();
-            echo json_encode(['success' => false, 'message' => 'Estoque insuficiente para o produto ID ']);
+            echo json_encode(['success' => false, 'message' => 'Estoque insuficiente para o produto selecionado - Compra Cancelada']);
             exit();
         }
     }
