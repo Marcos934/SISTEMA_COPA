@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ admin_cpf: admin_cpf })
+            body: JSON.stringify({ cpf: admin_cpf }) // Certifique-se de que o campo está correto
         });
 
         if (!response.ok) {
@@ -165,6 +165,12 @@ document.getElementById('salvarEdicoes').addEventListener('click', async functio
     const url_img = document.getElementById('url_img').value; // Captura a URL da imagem
     const admin_cpf = localStorage.getItem('cpfUsuario'); // Obtém o CPF do administrador do localStorage
 
+    // Validação simples para garantir que os campos não estejam vazios
+    if (!nome || !tipo || !preco || !qntd) {
+        alert('Por favor, preencha todos os campos obrigatórios.');
+        return;
+    }
+
     try {
         const response = await fetch(`${config.baseURL}editar_produto.php`, {
             method: 'POST',
@@ -213,7 +219,7 @@ async function fetchProdutos() {
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ admin_cpf: admin_cpf })
+        body: JSON.stringify({ cpf: admin_cpf }) // Certifique-se de que o campo está correto
     });
 
     if (!response.ok) {

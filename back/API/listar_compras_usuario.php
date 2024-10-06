@@ -74,7 +74,7 @@ try {
     }
 
     // Ordena do mais antigo para o mais recente
-    $sql .= ' ORDER BY c.data ASC';
+    $sql .= ' ORDER BY c.data DESC';
     $stmt = $pdo->prepare($sql);
 
     // Vincula os parâmetros de data e pgto se enviados
