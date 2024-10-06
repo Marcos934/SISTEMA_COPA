@@ -15,7 +15,6 @@ session_start();
 //     echo json_encode(['success' => false, 'message' => 'Usuário não autenticado.']);
 //     exit();
 // }
-
 require_once 'db.php';
 
 // Obtém os dados enviados
@@ -74,7 +73,8 @@ try {
         $sql .= ' AND c.pgto = :pgto';
     }
 
-    $sql .= ' ORDER BY c.data DESC';
+    // Ordena do mais antigo para o mais recente
+    $sql .= ' ORDER BY c.data ASC';
     $stmt = $pdo->prepare($sql);
 
     // Vincula os parâmetros de data e pgto se enviados

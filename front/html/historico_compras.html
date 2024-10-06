@@ -47,6 +47,11 @@
     <div class="container mt-5">
         <h1>Histórico de Compras</h1>
 
+        <!-- Total Pendente -->
+        <div id="totalPendenteContainer" class="alert alert-info">
+            <span id="totalPendente" class="fw-bold">Total pendente para pagamento: R$ 0.00</span>
+        </div>
+        
         <!-- Filtros -->
         <div class="row mb-3">
             <div class="col-md-4">
@@ -75,10 +80,10 @@
 
         <div class="tab-content mt-3" id="myTabContent">
             <div class="tab-pane fade show active" id="pendente" role="tabpanel" aria-labelledby="pendente-tab">
-                <div id="historicoListPendentes" class="row row-cols-1 row-cols-md-3 g-4"></div>
+                <div id="historicoListPendentes" class="row row-cols-1 row-cols-md-5 g-4"></div>
             </div>
             <div class="tab-pane fade" id="pago" role="tabpanel" aria-labelledby="pago-tab">
-                <div id="historicoListPagas" class="row row-cols-1 row-cols-md-3 g-4"></div>
+                <div id="historicoListPagas" class="row row-cols-1 row-cols-md-5 g-4"></div>
             </div>
         </div>
     </div>
