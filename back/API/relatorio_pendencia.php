@@ -2,7 +2,6 @@
 include 'cors.php'; // Inclui as configurações de CORS
 header('Access-Control-Allow-Methods: POST');
 
-
 require_once 'db.php';
 
 // Obtém os dados enviados
@@ -15,6 +14,7 @@ if (!isset($data['admin_cpf'])) {
 }
 
 $admin_cpf = $data['admin_cpf'];
+$cpf_usuario = isset($data['cpf_usuario']) ? $data['cpf_usuario'] : null;
 
 try {
     $db = new Database();
@@ -31,18 +31,31 @@ try {
         exit();
     }
 
-    // Consulta todos os usuários e seus dados de compra, exceto o campo password
+    // Consulta os dados de compra. Se o CPF do usuário for fornecido, filtra por ele.
     $sql = '
         SELECT u.nome, u.cpf, u.tipo, u.telefone, u.status,
                c.id_compra, p.nome AS nome_produto, cp.quantidade, c.total, c.data, c.pgto
         FROM usuario u
         LEFT JOIN compra c ON u.id_usuario = c.fk_id_usuario
         LEFT JOIN compra_produto cp ON c.id_compra = cp.fk_id_compra
-        LEFT JOIN produto p ON cp.fk_id_produto = p.id_produto
-        ORDER BY u.nome ASC, c.data ASC';
+        LEFT JOIN produto p ON cp.fk_id_produto = p.id_produto';
+
+    // Se o CPF do usuário foi passado, filtra por ele
+    if ($cpf_usuario) {
+        $sql .= ' WHERE u.cpf = :cpf_usuario';
+    }
+
+    $sql .= ' ORDER BY u.nome ASC, c.data ASC';
 
     $stmt = $pdo->prepare($sql);
-    $stmt->execute();
+
+    // Passa os parâmetros para a consulta
+    if ($cpf_usuario) {
+        $stmt->execute(['cpf_usuario' => $cpf_usuario]);
+    } else {
+        $stmt->execute();
+    }
+
     $relatorio = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     echo json_encode(['success' => true, 'relatorio' => $relatorio]);

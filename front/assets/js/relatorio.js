@@ -79,10 +79,10 @@ function listarUsuarios(relatorio) {
     });
 }
 
-// Função para mostrar detalhes (implementação opcional)
-function mostrarDetalhes(cpf) {
-    alert(`Mostrar detalhes para o usuário com CPF: ${cpf}`);
-}
+// Função para mostrar detalhes do usuário
+window.mostrarDetalhes = function(cpf) {
+    window.location.href = `detalhes_usuario.html?cpf_usuario=${cpf}`; // Apenas cpf_usuario na URL
+};
 
 // Função para alterar status (implementação opcional)
 function alterarStatus(cpf) {
