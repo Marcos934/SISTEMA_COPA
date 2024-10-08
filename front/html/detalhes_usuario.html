@@ -39,6 +39,8 @@
     <div class="container mt-5">
         <h1>Detalhes do Usuário</h1>
 
+        <h5>Total devido: R$ <span id="totalDevido">0.00</span></h5>
+
         <!-- Tabs para Pendentes e Pagas -->
         <ul class="nav nav-tabs" id="myTab" role="tablist">
             <li class="nav-item" role="presentation">
@@ -51,11 +53,41 @@
 
         <div class="tab-content mt-3" id="myTabContent">
             <div class="tab-pane fade show active" id="pendente" role="tabpanel" aria-labelledby="pendente-tab">
-                <h5>Total devido: R$ <span id="totalDevido">0.00</span></h5>
-                <div id="historicoListPendentes" class="row row-cols-1 row-cols-md-3 g-4"></div>
+                <button type="button" class="btn btn-secondary mb-3" id="selecionarTudoBtn">Selecionar Tudo</button>
+                <table class="table mt-3">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>Id Compra</th>
+                            <th>Nome do Produto</th>
+                            <th>Quantidade</th>
+                            <th>Data da Compra</th>
+                            <th>Total da Compra</th>
+                        </tr>
+                    </thead>
+                    <tbody id="produtosListPendentes">
+                        <!-- Lista de produtos pendentes será inserida aqui -->
+                    </tbody>
+                </table>
+                <button type="button" class="btn btn-warning mt-3" id="alterarStatusBtn">Alterar Status para Pago</button>
             </div>
             <div class="tab-pane fade" id="pago" role="tabpanel" aria-labelledby="pago-tab">
-                <div id="historicoListPagas" class="row row-cols-1 row-cols-md-3 g-4"></div>
+                <table class="table mt-3">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>Id Compra</th>
+                            <th>Nome do Produto</th>
+                            <th>Quantidade</th>
+                            <th>Data da Compra</th>
+                            <th>Total da Compra</th>
+                        </tr>
+                    </thead>
+                    <tbody id="produtosListPagos">
+                        <!-- Lista de produtos pagos será inserida aqui -->
+                    </tbody>
+                </table>
+                <button type="button" class="btn btn-warning mt-3" id="alterarStatusPagoBtn">Alterar Status para Pendente</button>
             </div>
         </div>
     </div>
