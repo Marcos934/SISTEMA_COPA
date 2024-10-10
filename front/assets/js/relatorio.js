@@ -47,7 +47,7 @@ function listarUsuarios(relatorio) {
             usuariosMap.set(item.cpf, {
                 nome: item.nome,
                 telefone: item.telefone,
-                tipo: item.tipo,
+                tipo: item.tipo === 'CS' ? 'Usuário' : 'Admin', // Formatação do tipo
                 status: item.status,
                 quantidade: 0,
                 total: 0,
@@ -59,8 +59,10 @@ function listarUsuarios(relatorio) {
         }
     });
 
-    const usuariosList = document.getElementById('usuariosList');
-    usuariosList.innerHTML = ''; // Limpa a lista antes de exibir
+    const usuariosListPendentes = document.getElementById('usuariosList');
+    const usuariosListOK = document.getElementById('usuariosListOK');
+    usuariosListPendentes.innerHTML = ''; // Limpa a lista antes de exibir
+    usuariosListOK.innerHTML = ''; // Limpa a lista de OK antes de exibir
 
     usuariosMap.forEach((usuario, cpf) => {
         const usuarioRow = `
@@ -69,22 +71,23 @@ function listarUsuarios(relatorio) {
                 <td>${usuario.nome}</td>
                 <td>R$ ${usuario.total.toFixed(2)}</td>
                 <td>${usuario.telefone}</td>
+                <td>${usuario.tipo}</td>
                 <td>
                     <button class="btn btn-info btn-sm" onclick="mostrarDetalhes('${cpf}')">Detalhes</button>
-                    <button class="btn btn-warning btn-sm" onclick="alterarStatus('${cpf}')">Alterar Status</button>
                 </td>
             </tr>
         `;
-        usuariosList.innerHTML += usuarioRow; // Adiciona a linha do usuário à tabela
+
+        // Adiciona à lista de pendentes ou OK
+        if (usuario.total > 0) {
+            usuariosListPendentes.innerHTML += usuarioRow; // Adiciona à lista de pendentes
+        } else {
+            usuariosListOK.innerHTML += usuarioRow; // Adiciona à lista de OK
+        }
     });
 }
 
-// Função para mostrar detalhes do usuário
-window.mostrarDetalhes = function(cpf) {
-    window.location.href = `detalhes_usuario.html?cpf_usuario=${cpf}`; // Apenas cpf_usuario na URL
-};
-
-// Função para alterar status (implementação opcional)
-function alterarStatus(cpf) {
-    alert(`Alterar status para o usuário com CPF: ${cpf}`);
+// Função para mostrar detalhes
+window.mostrarDetalhes = function(cpf) { // Define a função como global
+    window.location.href = `detalhes_usuario.html?cpf_usuario=${cpf}`; // Passa apenas o CPF do usuário
 }
